@@ -23,8 +23,7 @@ pub fn update_board(update: &mut Vec<Vec<usize>>, posX: usize, posY: usize, play
 
 // Checks the players turn, If the game is won, and continues the game loop
 pub fn game_loop(board: &mut Vec<Vec<usize>>, mut player_num: usize, xPos: usize, yPos: usize){
-    if board_check(board, xPos, yPos){
-        println!("Player {} Won the game!", player_num);
+    if board_check(board, xPos, yPos, player_num){
         std::process::exit(0);
     } else {
         if player_num == 1{
@@ -38,17 +37,47 @@ pub fn game_loop(board: &mut Vec<Vec<usize>>, mut player_num: usize, xPos: usize
 }
 
 // Checks the board to see if the game has been won
-fn board_check(board: &Vec<Vec<usize>>, xPos: usize, yPos: usize) -> bool{
-    let game_won: bool = false;
-    let count: usize = token_count(board, xPos, yPos, -1, 0, 1, 0);
-    println!("Count: {}", count);
+fn board_check(board: &Vec<Vec<usize>>, xPos: usize, yPos: usize, player_num: usize) -> bool{
+    let mut game_won: bool = false;
+    let mut horizCount: i8 = 0;
+    let mut vertiCount: i8 = 0;
+    let mut diagCount1: i8 = 0;
+    let mut diagCount2: i8 = 0;
+    
+    horizCount = horizCount + token_count(board, xPos, yPos,  1,  0, player_num,  0);
+    horizCount = horizCount + token_count(board, xPos, yPos, -1,  0, player_num, -1);
+    vertiCount = vertiCount + token_count(board, xPos, yPos,  0,  1, player_num,  0);
+    vertiCount = vertiCount + token_count(board, xPos, yPos,  0, -1, player_num, -1);
+    diagCount1 = diagCount1 + token_count(board, xPos, yPos, -1,  1, player_num,  0);
+    diagCount1 = diagCount1 + token_count(board, xPos, yPos,  1, -1, player_num, -1);
+    diagCount2 = diagCount2 + token_count(board, xPos, yPos,  1,  1, player_num,  0);
+    diagCount2 = diagCount2 + token_count(board, xPos, yPos, -1, -1, player_num, -1);
+    
+    // Checks to see if player has beaten the game
+    if horizCount >= 4 || vertiCount >= 4 || diagCount1 >= 4 || diagCount2 >= 4{
+        print_board(board);
+        println!("Player {} has won the game!", player_num);
+        game_won = true;
+    }
+    
+    // Checks if the game is a draw
+    let mut draw: i8 = 0;
+    for full in 0..7{
+        if board[full][0] != 0{
+            draw += 1;
+        }
+    }
+    if draw == 7{
+        print_board(board);
+        println!("The game is a draw");
+        game_won = true;
+    }
     
     game_won
 }
 
 // Recursize function to check total amount in a line, from latest token played
-fn token_count(board: &Vec<Vec<usize>>, mut xPos: usize, mut yPos: usize, xPosChange: i8, yPosChange: i8, player_num: usize, mut count: usize) -> usize{
-    count += 1;
+fn token_count(board: &Vec<Vec<usize>>, mut xPos: usize, mut yPos: usize, xPosChange: i8, yPosChange: i8, player_num: usize, mut count: i8) -> i8{
     //Player Check
     if board[xPos][yPos] != player_num {
         return count;
@@ -58,11 +87,13 @@ fn token_count(board: &Vec<Vec<usize>>, mut xPos: usize, mut yPos: usize, xPosCh
     let xBoundCheck = xPos as i8;
     let yBoundCheck = yPos as i8;
     if (xBoundCheck + xPosChange < 0 || yBoundCheck + yPosChange < 0) || (xBoundCheck + xPosChange >= 7 || yBoundCheck + yPosChange >= 6) {
+        count += 1;
         return count;
     }
     
     xPos = update_position(xPos, xPosChange);
     yPos = update_position(yPos, yPosChange);
+    count += 1;
     token_count(board, xPos, yPos, xPosChange, yPosChange, player_num, count)
 }
 
