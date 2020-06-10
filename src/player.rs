@@ -26,13 +26,15 @@ pub fn enter_choice(mut choice_num: usize, mut board: &mut Vec<Vec<usize>>, play
         choice_num -= 1;
     }
     if choice_num < 7 && board[choice_num][0] == 0{
-        for placement in (0..6).rev(){
-            if board[choice_num][placement] == 0{
-                board = game_master::update_board(board, choice_num, placement, player_num);
+        let mut y_placement: usize = 0;
+        for find_spot in (0..6).rev(){
+            if board[choice_num][find_spot] == 0{
+                y_placement = find_spot;
+                board = game_master::update_board(board, choice_num, find_spot, player_num);
                 break;
             }
         }
-        game_master::game_loop(board, player_num);
+        game_master::game_loop(board, player_num, choice_num, y_placement);
     } else{
         
         error_choice(board, player_num);
