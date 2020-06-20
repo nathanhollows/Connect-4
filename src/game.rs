@@ -33,6 +33,7 @@ impl Game {
 
     fn check_win (&mut self, col: usize, row: usize) {
         let mut connected = 0;
+        // Check for horizontal wins
         for i in 0..7 {
             if i > 6 {continue};
             if self.board[i][row] == self.current_player {
@@ -45,6 +46,7 @@ impl Game {
                 return
             };
         }
+        // Check for vertical wins
         connected = 0;
         for i in 0..6 {
             if self.board[col][i] == self.current_player {
@@ -57,6 +59,52 @@ impl Game {
                 return
             };
         }
+
+        // Check for diagonal wins (up, right)
+        connected = 0;
+        let mut c = 0;
+        let mut r = 0;
+        if col >= row {
+            c = col - row;
+        } else {
+            r = row-col;
+        }
+        while r < 6 && c < 7 {
+            if self.board[c][r] == self.current_player {
+                connected += 1;
+            } else {
+                connected = 0;
+            }
+            if connected == 4 {
+                self.winner = self.current_player;
+                return;
+            }
+            r += 1;
+            c += 1;
+        }
+
+        // Check for diagonal wins (down, right)
+        connected = 0;
+        let mut c = col;
+        let mut r = row;
+        while c < 6  && r > 0 {
+            c += 1;
+            r -= 1;
+        }
+        while r < 6 && c > 0 {
+            if self.board[c][r] == self.current_player {
+                connected += 1;
+            } else {
+                connected = 0;
+            }
+            if connected == 4 {
+                self.winner = self.current_player;
+                return;
+            }
+            r += 1;
+            c -= 1;
+        }
+
     }
     
     pub fn print(&self) {
@@ -64,7 +112,7 @@ impl Game {
             for j in 0..7 {
                 match self.board[j][i] {
                     -1 => print!("X "),
-                    1 => print!("O  "),
+                    1 => print!("O "),
                     _ => print!("- "),
                 }
             }
@@ -96,7 +144,7 @@ mod tests {
     #[test]
     fn test_full_col_drop () {
         let mut game = Game::new();
-        for i in 0..7 {
+        for _ in 0..7 {
             game.drop_token(0);
         }
         assert!(!game.drop_token(0));
@@ -155,11 +203,9 @@ mod tests {
     #[test]
     fn test_win_diagonal_down() {
         let mut game = Game::new();
-        for i in (0..3) {
-            for j in (1..4).rev() {
-                game.board[i][j] = 1;
-            }
-        }
+        game.board[0][3] = 1;
+        game.board[1][2] = 1;
+        game.board[2][1] = 1;
         game.drop_token(3);
         assert_eq!(game.winner, 1);
     }
