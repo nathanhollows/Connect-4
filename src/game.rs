@@ -91,18 +91,23 @@ impl Game {
             c += 1;
             r -= 1;
         }
-        while r < 6 && c > 0 {
+        println!("{}{}",c,r);
+        loop {
             if self.board[c][r] == self.current_player {
                 connected += 1;
+                if connected == 4 {
+                    self.winner = self.current_player;
+                    return;
+                }
             } else {
                 connected = 0;
             }
-            if connected == 4 {
-                self.winner = self.current_player;
-                return;
+            if r < 5 && c > 0 {
+                r += 1;
+                c -= 1;
+            } else {
+                break;
             }
-            r += 1;
-            c -= 1;
         }
 
     }
