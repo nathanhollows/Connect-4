@@ -1,64 +1,22 @@
-use crate::game_master;
 use std::io;
+use crate::game::Game;
 
 // Takes input from the players turn
-pub fn player_turn(board: &mut Vec<Vec<usize>>, player_num: usize){
-    game_master::print_board(& board);
-    println!("-------------");
-    println!("1 2 3 4 5 6 7");
-    println!("Press the number corresponding to the column to place your token");
+pub fn player_turn(game: &Game) -> usize {
+    print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+    println!("Which column do you want to drop your token in?");
+
+    game.print();
     
     let mut input_text = String::new();
-    io::stdin().read_line(&mut input_text).expect("Failed to read from stdin");
+    io::stdin().read_line(&mut input_text).expect("Something went wrong, press the any key");
 
     let trimmed = input_text.trim();
     match trimmed.parse::<usize>() {
-        Ok(choice_num) => enter_choice(choice_num, board, player_num),
-        Err(..) => error_choice(board, player_num),
-    };
-}
-
-// Checks if the choice is valid and if so, updates the board
-pub fn enter_choice(mut choice_num: usize, mut board: &mut Vec<Vec<usize>>, player_num: usize){
-    if choice_num == 0{
-        error_choice(board, player_num);
-    } else{
-        choice_num -= 1;
-    }
-    if choice_num < 7 && board[choice_num][0] == 0{
-        let mut y_placement: usize = 0;
-        for find_spot in (0..6).rev(){
-            if board[choice_num][find_spot] == 0{
-                y_placement = find_spot;
-                board = game_master::update_board(board, choice_num, find_spot, player_num);
-                break;
-            }
+        Ok(num) => num - 1,
+        Err(..) => {
+            eprintln!("Please enter a column between 1-7 to drop your marker");
+            10 // This will fail
         }
-        game_master::game_loop(board, player_num, choice_num, y_placement);
-    } else{
-        
-        error_choice(board, player_num);
-    }
-}
-
-// Error code if the user enetered a value that is not valid
-fn error_choice(board: &mut Vec<Vec<usize>>, player_num: usize){
-    println!("This is not a valid option");
-    println!("Please enter a valid option");
-    player_turn(board, player_num);
-}
-
-#[cfg(test)]
-mod tests{
-    use crate::player;
-    
-    #[test]
-    fn test_valid(){
-        player::enter_choice(7, &mut vec![vec![0; 6]; 7], 1);
-    }
-    
-    #[test]
-    fn test_wrong(){
-        player::enter_choice(8, &mut vec![vec![0; 6]; 7], 1);
     }
 }
