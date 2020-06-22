@@ -4,7 +4,9 @@ use crate::game::Game;
 // Takes input from the players turn
 pub fn player_turn(game: &Game) -> usize {
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-    println!("Which column do you want to drop your token in?");
+
+    println!("\n{} Player 1", if game.current_player == 1 {"->"} else {"  "});
+    println!("{} Player 2\n", if game.current_player == -1 {"->"} else {"  "});
 
     game.print();
     

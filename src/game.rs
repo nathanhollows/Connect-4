@@ -1,3 +1,17 @@
+/// The structure of the Connect Four game
+/// 
+/// This represents a 7 across, 6 high board.
+/// 
+/// #Examples
+/// 
+/// ```rust
+/// let game = new Game {
+///     board: vec![vec![0; 6]; 7],
+///     current_player: 1,
+///     winner: 0
+/// } 
+/// ```
+///
 pub struct Game {
     pub board: Vec<Vec<isize>>,
     pub current_player: isize,
@@ -5,6 +19,13 @@ pub struct Game {
 }
 
 impl Game {
+    /// Creates a new, ready to play, Game
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// let game = Game::new();
+    /// ```
     pub fn new() -> Game {
         Game {
             board: vec![vec![0; 6]; 7],
@@ -13,24 +34,47 @@ impl Game {
         }
     }
 
-    pub fn drop_token(&mut self, col: usize) -> bool {
-        if self.valid(col) {
-            for i in 0..6 {
-                if self.board[col][i] == 0 {
-                    self.board[col][i] = self.current_player;
-                    self.check_win(col, i);
-                    self.current_player *= -1;
-                    return true;
-                }
+    /// Drops a token in the given column
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// let column = 3;
+    /// let game = Game::new();
+    /// game.drop_token(column);
+    /// ```
+    /// 
+    /// # Panics
+    /// 
+    /// Panics when `col` > 6. This represents a token out of the bounds of the game.
+    /// 
+    /// Use `valid(column)` to check if the move is valid.
+    pub fn drop_token(&mut self, col: usize) {
+        for i in 0..self.board[0].len() {
+            if self.board[col][i] == 0 {
+                self.board[col][i] = self.current_player;
+                self.check_win(col, i);
+                self.current_player *= -1;
+                break;
             }
         }
-        false
     }
 
-    fn valid(&self, col: usize) -> bool {
-        col < 7 && self.board[col][5] == 0
+    /// Checks if the given column is a valid move.
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// let game = Game::new();
+    /// if game.valid(3) {
+    ///     game.drop_token(3);
+    /// }
+    /// assert!(game.board[0][0], 1);
+    pub fn valid(&self, col: usize) -> bool {
+        col < self.board.len() && self.board[col][5] == 0
     }
 
+    /// Checks if a defined token is in a row of 4.
     fn check_win (&mut self, col: usize, row: usize) {
         let mut connected = 0;
         // Check for horizontal wins
@@ -91,7 +135,6 @@ impl Game {
             c += 1;
             r -= 1;
         }
-        println!("{}{}",c,r);
         loop {
             if self.board[c][r] == self.current_player {
                 connected += 1;
@@ -112,6 +155,17 @@ impl Game {
 
     }
     
+    /// Prints the current state of the game
+    /// 
+    /// #Examples
+    /// 
+    /// ```rust
+    /// let game = Game::new();
+    /// if game.valid(4) {
+    ///     game.drop_token(4);
+    /// }
+    /// game.print();
+    /// ```
     pub fn print(&self) {
         for i in (0..6).rev() {
             for j in 0..7 {
@@ -152,46 +206,47 @@ mod tests {
         for _ in 0..7 {
             game.drop_token(0);
         }
-        assert!(!game.drop_token(0));
+        assert!(!game.valid(0));
     }
 
     #[test]
     fn test_valid_drop() {
-        let mut game = Game::new();
-        assert!(game.drop_token(0));
+        let game = Game::new();
+        assert!(game.valid(0));
     }
 
     #[test]
+    #[should_panic]
+    fn test_invalid_drop() {
+        let game = Game::new();
+        assert!(game.valid(9));
+    }
+
+    #[test]
+    #[should_panic]
     fn test_drop_out_of_bounds() {
         let mut game = Game::new();
-        // Should return a false result
-        assert!(!game.drop_token(9));
+        game.drop_token(9);
     }
 
     #[test]
     fn test_win_horizontal() {
         let mut game = Game::new();
-        game.drop_token(0);
-        game.drop_token(0);
-        game.drop_token(1);
-        game.drop_token(1);
-        game.drop_token(2);
-        game.drop_token(2);
+        game.board[0][0] = 1;
+        game.board[1][0] = 1;
+        game.board[2][0] = 1;
         game.drop_token(3);
-        assert!(game.winner == 1);
+        assert_eq!(game.winner, 1);
     }
 
     #[test]
     fn test_win_vertical() {
         let mut game = Game::new();
+        game.board[0][0] = 1;
+        game.board[0][1] = 1;
+        game.board[0][2] = 1;
         game.drop_token(0);
-        game.drop_token(1);
-        game.drop_token(0);
-        game.drop_token(1);
-        game.drop_token(0);
-        game.drop_token(1);
-        game.drop_token(0);
-        assert!(game.winner == 1);
+        assert_eq!(game.winner, 1);
     }
     #[test]
     fn test_win_diagonal_up() {
